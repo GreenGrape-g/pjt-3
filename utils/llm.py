@@ -24,7 +24,7 @@ class GraphState(TypedDict):
     documents: List[str]
 
 # PDF 문서 로드 및 분할
-loader = PyMuPDFLoader('./타짜.pdf')
+loader = PyMuPDFLoader('path_to_your_pdf.pdf')
 docs = loader.load()
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
 doc_splits = text_splitter.split_documents(docs)
@@ -58,10 +58,28 @@ re_write_prompt = ChatPromptTemplate.from_messages([
 question_rewriter = re_write_prompt | llm | StrOutputParser()
 
 # RAG 답변 생성 프롬프트
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "아래의 컨텍스트를 바탕으로 질문에 답하세요."),
-    ("human", "Context: \n\n {context} \n\n Question: {question}")
-])
+text = '''
+    넌 질문-답변을 도와주는 AI 도서전문가야.
+    아래 제공되는 Context를 통해서 사용자 Question에 대해 답을 해줘야해.
+
+    Context에는 직접적으로 없어도, 추론하거나 계산할 수 있는 답변은 최대한 만들어 봐.
+    대답할 수 없는 답변의 경우, 웹 페이지 검색을 통해 찾았으면 좋겠어.
+    답변을 할 때에는 다음과 같은 구성으로 보여줬으면 좋겠어.
+    
+    이미지
+    제목
+    저자
+    출판사
+    추천 이유
+    
+    답은 적절히 \n를 통해 문단을 나눠줘 한국어로 만들어 줘. 
+    # Question:
+    {question}
+
+    # Context:
+    {context}
+'''
+prompt = ChatPromptTemplate.from_template(text)
 rag_chain = prompt | llm | StrOutputParser()
 
 # 헬퍼 함수
@@ -98,9 +116,9 @@ def grade_documents(state):
 
 def transform_query(state):
     # 질문을 재작성하여 더 나은 검색 쿼리 생성
-    question = state["question"]
-    better_question = question_rewriter.invoke({"question": question})
-    return {"question": better_question, "documents": state["documents"]}
+    better_question = question_rewriter.invoke({"question": state["question"]})
+    state["question"] = better_question
+    return state
 
 def web_search(state):
     # 웹 검색 수행
@@ -138,6 +156,6 @@ workflow.add_edge("generate", END)
 
 # 워크플로우 컴파일 및 실행
 app = workflow.compile()
-question = '고니와 평경장의 관계는?'
+question = '사용자가 질문하고자 하는 내용'
 answer = app.invoke({'question': question})
 print(answer['generation'])
