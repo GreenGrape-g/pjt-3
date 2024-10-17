@@ -42,26 +42,45 @@ vectorstore = PineconeVectorStore.from_existing_index(
     index_name="bitebook", embedding=OpenAIEmbeddings()
 )
 
-prompt = hub.pull("rlm/rag-prompt")
+rag_system = """You are an assistant for question-answering tasks. 
+Use the following pieces of retrieved context to answer the question. 
+If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
+
+Question: {question} 
+
+Context: {context} 
+
+Answer:"""
+
+rag_prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "human",
+            rag_system,
+        ),
+    ]
+)
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
-system = """You a question re-writer that converts an input question to a better version that is optimized \n 
-    for web search. Look at the input and try to reason about the underlying semantic intent / meaning."""
+system = """당신은 입력된 단어나 구를 해당 주제와 관련된 책을 추천해 달라는 질문으로 변환하는 질문 재작성자입니다.
+입력이 이미 질문이라면, 웹 검색에 최적화된 형태로 개선하세요.
+결과로 나온 질문은 항상 입력과 관련된 책을 추천하도록 해야 합니다.
+입력의 의미를 변경하지 마세요."""
 
 re_write_prompt = ChatPromptTemplate.from_messages(
     [
         ("system", system),
         (
             "human",
-            "Here is the initial question: \n\n {question} \n Formulate an improved question.",
+            "입력: {question}\n\n재작성된 질문:",
         ),
     ]
 )
 
 # 아래 항목들이 graph.py 에서 사용하는 요소들
 retriever = vectorstore.as_retriever()
-rag_chain = prompt | llm | StrOutputParser()
+rag_chain = rag_prompt | llm | StrOutputParser()
 question_rewriter = re_write_prompt | llm | StrOutputParser()
 web_search_tool = TavilySearchResults(max_results=3)
 retrieval_grader = grade_prompt | structured_llm_grader

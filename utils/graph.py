@@ -84,23 +84,23 @@ def grade_documents(state):
 # 사용자의 question을 웹 검색하기 적합한 질문으로 변환
 def transform_query(state):
     """
-    Transform the query to produce a better question.
+    쿼리를 책 추천 질문으로 변환합니다.
 
     Args:
-        state (dict): The current graph state
+        state (dict): 현재 그래프 상태
 
     Returns:
-        state (dict): Updates question key with a re-phrased question
+        state (dict): 변환된 질문으로 업데이트된 상태
     """
 
     print("---TRANSFORM QUERY---")
     question = state["question"]
     documents = state["documents"]
 
-    # Re-write question
+    # 질문 재작성기 사용
     better_question = question_rewriter.invoke({"question": question})
+    print(f"재작성된 질문: {better_question}")
     return {"documents": documents, "question": better_question}
-
 
 # Tavily API로 질문에 대한 답을 Web에서 검색
 def web_search(state):
@@ -161,11 +161,21 @@ def optimize(state):
     print("---OPTIMIZE RESPONSE---")
     generated_response = state["generation"]
 
+    # 사용자가 요청한 책의 수를 추출 (예시로 3으로 설정)
+    requested_num_books = 3  # 실제로는 사용자의 질문에서 숫자를 추출하는 로직이 필요
+
     # Optimization 단계에서 톤앤매너 및 스타일 적용
-    optimizer = Optimization(tone="friendly", style="persuasive", additional_instructions="Ensure the response is engaging and welcoming.")
+    optimizer = Optimization(
+        tone="친근함",
+        style="전문적",
+        num_books=requested_num_books,  # 사용자가 요청한 책의 수
+        additional_instructions="추천 이유를 전문적이고 깊이 있게 작성하세요."
+    )
     optimized_response = optimizer.optimize_response(generated_response)
-    
+
     return {"generation": optimized_response, "documents": state["documents"], "question": state["question"]}
+
+
 
 ### Edges
 # 현재 조회한 문서가 question에 대한 내용을 담고 있는지 여부에 따라

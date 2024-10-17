@@ -1,10 +1,16 @@
+# app.py
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from utils.books import get_all_books, get_book_by_title
-from utils.graph import websearch_rag
 from utils.magazine import get_all_articles, get_article_by_id
-from utils.favorites import get_favorites_message, get_new_favorite_message
+from utils.favorites import get_favorites_message
+from utils.chatbot import handle_chatbot_request  # 챗봇 핸들러 함수 가져오기
+import os
+from dotenv import load_dotenv
 
+# 환경 변수 로드
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
@@ -22,7 +28,7 @@ def books():
 
 # 책 제목으로 책 상세 정보 검색 API
 @app.route('/book', methods=['GET'])
-def book_by_title():
+def book_by_title_route():
     title = request.args.get('title')
     if not title:
         return jsonify({'error': '책 제목을 입력해주세요.'}), 400
@@ -50,29 +56,18 @@ def magazine_article(article_id):
 def book_request():
     return jsonify({'message': '여기는 책 신청 게시판 목록 화면입니다.'})
 
-@app.route('/requests/new', methods=['GET'])
-def new_book_request():
-    return jsonify({'message': '여기는 새로운 책을 신청하는 화면입니다.'})
+# 즐겨찾기 목록 API
+@app.route('/favorites/<int:user_id>', methods=['GET'])
+def favorites(user_id):
+    message = get_favorites_message(user_id)
+    return jsonify({'favorites': message})
 
-# 즐겨찾기 목록 화면 (화면만 구현)
-@app.route('/favorites', methods=['GET'])
-def favorites():
-    message = get_favorites_message()
-    return jsonify({'message': message})
-
-# 새로운 즐겨찾기 추가 화면 (화면만 구현)
-@app.route('/favorites/new', methods=['GET'])
-def new_favorite():
-    message = get_new_favorite_message()
-    return jsonify({'message': message})
-
-# 챗봇 페이지
+# 챗봇 API 엔드포인트
 @app.route('/chatbot', methods=['POST'])
-def ask():
-    question = request.json['message']
-    # utils/graph.py 에서 최종 질문 검색하는 함수
-    ans = websearch_rag(question)
-    return {'llm': ans}
+def chatbot_route():
+    data = request.get_json()
+    response, status_code = handle_chatbot_request(data)
+    return jsonify(response), status_code
 
 if __name__ == '__main__':
     app.run(debug=True)
