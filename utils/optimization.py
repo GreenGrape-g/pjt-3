@@ -1,4 +1,4 @@
-# utils/optimization.py
+# optimization.py
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
@@ -52,9 +52,7 @@ class Optimization:
 2. 책 제목 (책 제목은 큰따옴표로 감싸세요: "책 제목")
 3. 작가
 4. 출판사
-5. 추천 이유 - 네이버 책 소개를 3문장으로 요약하여 작성
-6. 필요에 따라 후속 질문이나 제안을 추가하세요.
-7. 구매 링크 - 서점 이름에 하이퍼링크를 적용하여 표시 (교보문고, 알라딘, 영풍문고 순)
+5. 필요에 따라 후속 질문이나 제안을 추가하세요.
 
 주의사항:
 - 반드시 실제로 존재하는 책만 추천하세요.
@@ -163,7 +161,7 @@ class Optimization:
         책 정보를 텍스트에 삽입.
         """
         # 텍스트에서 기존 책 정보 제거
-        keys_to_remove = ['책 이미지', '책 제목', '작가', '출판사', '추천 이유', '구매 링크', '필요에 따라 후속 질문이나 제안을 추가하세요.']
+        keys_to_remove = ['책 이미지', '책 제목', '작가', '출판사', '추천 이유', '구매 링크']
         for key in keys_to_remove:
             pattern = f"{key}:.*?"
             text = re.sub(pattern, '', text)
@@ -189,7 +187,7 @@ class Optimization:
             yes24_link = f"https://www.yes24.com/Product/Search?query={encoded_title}"
 
             # 서점 이름에 하이퍼링크 적용 (Markdown 형식)
-            purchase_links = f"[교보문고]({kyobo_link}), [알라딘]({aladin_link}), [YES24]({yes24_link})"
+            purchase_links = f"[교보문고]({kyobo_link}), [알라딘]({aladin_link}), [영풍문고]({yes24_link})"
 
             # 책 이미지에 Markdown 형식의 이미지 링크 적용
             book_image = f"![책 이미지]({book_info['image']})"
