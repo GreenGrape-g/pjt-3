@@ -1,7 +1,7 @@
 # app.py
 
-from flask import Flask, send_from_directory
-import os
+from flask import Flask, send_from_directory, jsonify, request
+from utils.chatbot import handle_chatbot_request  # 챗봇 핸들러 함수 가져오기
 
 app = Flask(__name__, static_folder='.')
 
@@ -23,9 +23,11 @@ def serve_magazine():
 def serve_likes():
     return send_from_directory('.', 'likes.html')
 
-@app.route('/chatbot')
-def serve_chatbot():
-    return send_from_directory('.', 'chatbot.html')
+@app.route('/chatbot', methods=['POST'])
+def chatbot_route():
+    data = request.get_json()
+    response, status_code = handle_chatbot_request(data)
+    return jsonify(response), status_code
 
 # 정적 파일 제공 (CSS, JS, 이미지 등)
 @app.route('/static/<path:path>')
