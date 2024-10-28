@@ -1,73 +1,43 @@
 # app.py
 
-from flask import Flask, jsonify, request
-from flask_cors import CORS
-from utils.books import get_all_books, get_book_by_title
-from utils.magazine import get_all_articles, get_article_by_id
-from utils.favorites import get_favorites_message
+from flask import Flask, send_from_directory, jsonify, request
 from utils.chatbot import handle_chatbot_request  # 챗봇 핸들러 함수 가져오기
-import os
-from dotenv import load_dotenv
 
-# 환경 변수 로드
-load_dotenv()
+app = Flask(__name__, static_folder='.')
 
-app = Flask(__name__)
-CORS(app)
+# 홈 페이지 제공
+@app.route('/')
+def serve_home():
+    return send_from_directory('.', 'index.html')
 
-# 테스트 라우트
-@app.route('/hi')
-def hi():
-    return jsonify({'message': 'hi'})
+# 다른 정적 페이지 제공
+@app.route('/books')
+def serve_bookshelf():
+    return send_from_directory('.', 'bookshelf.html')
 
-# 책 목록 API
-@app.route('/books', methods=['GET'])
-def books():
-    book_list = get_all_books()
-    return jsonify(book_list)
+@app.route('/magazine')
+def serve_magazine():
+    return send_from_directory('.', 'magazine.html')
 
-# 책 제목으로 책 상세 정보 검색 API
-@app.route('/book', methods=['GET'])
-def book_by_title_route():
-    title = request.args.get('title')
-    if not title:
-        return jsonify({'error': '책 제목을 입력해주세요.'}), 400
-    book = get_book_by_title(title)
-    if not book:
-        return jsonify({'error': '해당 제목의 책을 찾을 수 없습니다.'}), 404
-    return jsonify(book)
+@app.route('/likes')
+def serve_likes():
+    return send_from_directory('.', 'likes.html')
 
-# 잡지 콘텐츠 목록 API
-@app.route('/magazine', methods=['GET'])
-def magazine():
-    articles = get_all_articles()
-    return jsonify(articles)
-
-# 잡지 상세 콘텐츠 API
-@app.route('/magazine/<article_id>', methods=['GET'])
-def magazine_article(article_id):
-    article = get_article_by_id(article_id)
-    if not article:
-        return jsonify({'error': '해당 기사를 찾을 수 없습니다.'}), 404
-    return jsonify(article)
-
-# 책 신청 게시판 (화면만 구현)
-@app.route('/requests_list', methods=['GET'])
-def book_request():
-    return jsonify({'message': '여기는 책 신청 게시판 목록 화면입니다.'})
-
-# 즐겨찾기 목록 API
-@app.route('/favorites/<int:user_id>', methods=['GET'])
-def favorites(user_id):
-    message = get_favorites_message(user_id)
-    return jsonify({'favorites': message})
-
-# 챗봇 API 엔드포인트
 @app.route('/chatbot', methods=['POST'])
 def chatbot_route():
     data = request.get_json()
     response, status_code = handle_chatbot_request(data)
     return jsonify(response), status_code
+
+# 정적 파일 제공 (CSS, JS, 이미지 등)
+@app.route('/static/<path:path>')
+def serve_static_files(path):
+    return send_from_directory('static', path)
+
+# 404 에러 핸들러
+@app.errorhandler(404)
+def page_not_found(e):
+    return "페이지를 찾을 수 없습니다.", 404
 
 if __name__ == '__main__':
     app.run(debug=True)
