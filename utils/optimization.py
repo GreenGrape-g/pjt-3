@@ -253,3 +253,4 @@ class Optimization:
         else:
             print(f"네이버 API 요청 실패: {response.status_code}")
             return []
+

@@ -9,3 +9,4 @@ class State(TypedDict):
     about_books: bool
     book_info: str
     other_info: str
+

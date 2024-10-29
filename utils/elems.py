@@ -70,3 +70,4 @@ question_rewriter = re_write_prompt | llm | StrOutputParser()
 
 # 웹 검색 도구 초기화
 web_search_tool = TavilySearchResults(max_results=5)
+
