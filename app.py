@@ -1,7 +1,11 @@
-# app.py
-
 from flask import Flask, send_from_directory, jsonify, request
-from utils.chatbot import handle_chatbot_request  # 챗봇 핸들러 함수 가져오기
+from dotenv import load_dotenv
+
+# 'handle_chatbot_request' 대신 'graph_main'을 임포트합니다.
+from utils.graph import graph_main  # graph.py의 graph_main 임포트
+
+# 환경 변수 로드
+load_dotenv()
 
 app = Flask(__name__, static_folder='.')
 
@@ -23,11 +27,26 @@ def serve_magazine():
 def serve_likes():
     return send_from_directory('.', 'likes.html')
 
+# 챗봇 라우트 정의
 @app.route('/chatbot', methods=['POST'])
 def chatbot_route():
     data = request.get_json()
-    response, status_code = handle_chatbot_request(data)
-    return jsonify(response), status_code
+    question = data.get('message')
+    if not question:
+        return jsonify({'error': '메시지를 입력해주세요.'}), 400
+
+    # 초기 상태 설정
+    state = {
+        "messages": [{"role": "user", "content": question}],
+    }
+
+    # 그래프 실행
+    result = graph_main(state)
+
+    # 최종 응답 가져오기
+    final_response = result.get('generation', result.get('response', '죄송하지만, 답변을 생성할 수 없습니다.'))
+
+    return jsonify({'llm': final_response}), 200
 
 # 정적 파일 제공 (CSS, JS, 이미지 등)
 @app.route('/static/<path:path>')

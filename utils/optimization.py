@@ -1,7 +1,5 @@
-# optimization.py
-
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langchain.chat_models import ChatOpenAI
 from pydantic import BaseModel, Field
 import requests
 import os
@@ -25,19 +23,10 @@ tone_style_llm = ChatOpenAI(model="gpt-4", temperature=0.7)
 
 class Optimization:
     def __init__(self, tone, style, num_books=1, additional_instructions=None, conversation_history=None):
-        """
-        원하는 톤, 스타일 및 추가 지시사항으로 최적화 설정 초기화.
-
-        :param tone: 답변의 원하는 톤 (예: "격식있는", "캐주얼한", "친근한").
-        :param style: 답변에 사용할 글쓰기 스타일 (예: "정보전달형", "설득력 있는", "간결한").
-        :param num_books: 추천할 책의 수.
-        :param additional_instructions: 응답 생성에 포함할 추가 지시사항 (옵션).
-        :param conversation_history: 이전 대화 기록을 담은 리스트 (옵션).
-        """
         self.tone = tone
         self.style = style
         self.num_books = num_books
-        self.additional_instructions = additional_instructions
+        self.additional_instructions = additional_instructions or ""
         self.conversation_history = conversation_history or []
         self.naver_client_id = os.getenv("NAVER_CLIENT_ID")
         self.naver_client_secret = os.getenv("NAVER_CLIENT_SECRET")
@@ -50,7 +39,7 @@ class Optimization:
 2. 책 제목 (책 제목은 큰따옴표로 감싸세요: "책 제목")
 3. 작가
 4. 출판사
-5. 구매링크
+5. 구매 링크
 6. 필요에 따라 후속 질문이나 제안을 추가하세요.
 
 주의사항:
@@ -68,46 +57,48 @@ class Optimization:
 
 추가 사항:
 - 책과 관련 없는 질문이 들어올 경우, 자연스럽고 친절하게 대화를 이어가며 응답하세요.
-
 """
 
-        # 최적화를 위한 채팅 프롬프트 템플릿 정의
-        self.optimization_prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", self.optimization_system),
-                *self.conversation_history,  # 이전 대화 내용을 포함
-                (
-                    "human",
-                    "생성된 답변: {response}\n\n추가 지시사항: {additional_instructions}"
-                ),
-            ]
+        # 메시지 템플릿 리스트 생성
+        messages = [
+            ("system", self.optimization_system)
+        ]
+
+        # 대화 기록을 메시지 리스트에 추가
+        for msg in self.conversation_history:
+            role = msg.get("role", "")
+            content = msg.get("content", "")
+            if role == "user":
+                messages.append(("human", content))
+            elif role == "assistant":
+                messages.append(("ai", content))
+
+        # 마지막에 추가 지시사항과 질문을 포함한 human 메시지 추가
+        messages.append(
+            (
+                "human",
+                "생성된 질문: {question}\n\n추가 지시사항: {additional_instructions}"
+            )
         )
 
-        # 최적화를 위한 구조화된 LLM 생성
-        self.structured_optimizer = tone_style_llm.with_structured_output(OptimizationPrompt)
+        # 최적화를 위한 채팅 프롬프트 템플릿 정의
+        self.optimization_prompt = ChatPromptTemplate.from_messages(messages)
 
-    def optimize_response(self, generated_response):
-        """
-        톤, 스타일 및 추가 지시사항에 따라 최적화된 응답 생성.
+        # 구조화된 LLM 생성
+        self.structured_optimizer = tone_style_llm
 
-        :param generated_response: 이전 단계에서 생성된 콘텐츠.
-        :return: 원하는 톤과 스타일에 맞는 최적화된 응답.
-        """
+    def optimize_response(self, question):
         # 프롬프트에 필요한 변수를 전달
         prompt_data = self.optimization_prompt.format_prompt(
-            response=generated_response,
+            question=question,
             additional_instructions=self.additional_instructions or "없음"
         )
 
-        # 대화 기록 업데이트
-        self.conversation_history.append(("human", generated_response))
-
         # 최적화된 응답 생성
-        optimized_response = self.structured_optimizer.invoke(prompt_data.to_messages())
-        optimized_text = optimized_response.optimized_response
+        optimized_response = self.structured_optimizer(prompt_data.to_messages()).content.strip()
 
         # 최적화된 응답에서 책 제목들 추출
-        book_titles = self.extract_book_titles(optimized_text)
+        book_titles = self.extract_book_titles(optimized_response)
 
         # 네이버 API를 사용하여 책 정보 가져오기
         if book_titles:
@@ -125,13 +116,13 @@ class Optimization:
                 return "죄송하지만 관련된 책을 찾을 수 없었습니다. 질문을 더 구체적으로 만들어주실 수 있으신가요?"
 
             # 존재하는 책들로 최적화된 응답을 수정
-            optimized_text = self.rewrite_response(optimized_text, valid_titles)
+            optimized_text = self.rewrite_response(optimized_response, valid_titles)
 
             # 책 정보를 최적화된 응답에 통합
             final_response = self.insert_book_info(optimized_text, book_info_list)
             return final_response
         else:
-            return optimized_text
+            return optimized_response
 
     def extract_book_titles(self, text):
         """
@@ -174,7 +165,7 @@ class Optimization:
             # 책 제목에서 소제목 제거
             main_title = title.split('(')[0].strip()
 
-            # 추천 이유를 네이버 책 소개로부터 가져와서 3문장으로 요약
+            # 추천 이유를 네이버 책 소개로부터 가져와서 2문장으로 요약
             description = book_info['description']
             summary = self.summarize_text(description, 2)
 
@@ -185,7 +176,7 @@ class Optimization:
             yes24_link = f"https://www.yes24.com/Product/Search?query={encoded_title}"
 
             # 서점 이름에 하이퍼링크 적용 (Markdown 형식)
-            purchase_links = f"[교보문고]({kyobo_link}), [알라딘]({aladin_link}), [영풍문고]({yes24_link})"
+            purchase_links = f"[교보문고]({kyobo_link}), [알라딘]({aladin_link}), [예스24]({yes24_link})"
 
             # 책 이미지에 Markdown 형식의 이미지 링크 적용
             book_image = f"![책 이미지]({book_info['image']})"
@@ -207,7 +198,7 @@ class Optimization:
         :param num_sentences: 원하는 문장 수
         :return: 요약된 텍스트
         """
-        # 텍스트가 없으면 빈 문자열 반환
+        # 텍스트가 없으면 기본 메시지 반환
         if not text:
             return "상세한 내용은 링크를 참고해주세요."
 
