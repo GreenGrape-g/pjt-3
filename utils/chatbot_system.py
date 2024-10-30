@@ -1,8 +1,11 @@
 # utils/chatbot_system.py
 
+from dotenv import load_dotenv
 from langchain.chat_models import ChatOpenAI
 from langchain.agents import initialize_agent, AgentType
 
+
+load_dotenv()
 
 # LLM 초기화
 llm = ChatOpenAI(model="gpt-4", temperature=0)
@@ -14,7 +17,7 @@ agent_executor = initialize_agent(
     agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
     verbose=True,
     agent_kwargs={
-        "system_message": "당신은 사용자에게 친절하고 직접적으로 답변하는 비서입니다. 책 관련 질문이면 그 질문을 따라합니다. 일상 질문이면 친절하게 답변해주고, 모호한 단어면 다시 질문해주세요."
+        "system_message": "당신은 사용자에게 친절하고 직접적으로 답변하는 비서입니다. 책은 1권만 일상 질문이면 친절하게 답변해주고, 모호한 단어면 다시 질문해주세요. **모든 응답은 한국어로 작성합니다.**"
     }
 )
 

@@ -4,10 +4,10 @@ from langgraph.graph import END, StateGraph, START
 
 from .custom_types import State
 from .chatbot_system import chatbot
-from .judgement import is_about_books, decide_next_node
+from .judgement import is_about_books, decide_next_node, is_about_negative
 from .elems import question_rewriter, web_search_tool
 from .optimization import Optimization
-from .nlp_utils import extract_top_korean_words
+from .nlp_utils import extract_top_korean_phrases
 
 class GraphState(TypedDict):
     """Graph의 상태를 나타냅니다."""
@@ -21,10 +21,12 @@ class GraphState(TypedDict):
     messages: List[Dict]
 
 def judgement_node(state: GraphState) -> GraphState:
-    """챗봇의 응답을 기반으로 책 질문인지 판단합니다."""
+    """챗봇의 응답을 기반으로 책 질문인지 및 부정적인 단어 포함 여부를 판단합니다."""
     response = state["response"]
     is_book_question = is_about_books(response)
+    is_negative_answer = is_about_negative(response)
     state["is_book_question"] = is_book_question
+    state["is_negative"] = is_negative_answer  # 플래그 이름 일치
     return state
 
 def transform_query_node(state: GraphState) -> GraphState:
@@ -61,7 +63,7 @@ def extract_top_words_node(state: GraphState) -> GraphState:
     """검색된 문서에서 상위 단어를 추출합니다."""
     print("---EXTRACT TOP WORDS---")
     text = " ".join([doc["content"] for doc in state["documents"]])
-    top_words = extract_top_korean_words(text, n=5)
+    top_words = extract_top_korean_phrases(text, n=5)
     state["top_words"] = top_words
     print(f"Top Words: {top_words}")
     return state
@@ -85,7 +87,7 @@ def optimize_node(state: GraphState) -> GraphState:
         style="설득력 있는",
         num_books=1,  # 항상 1권 추천
         additional_instructions=f"상위 단어: {top_words_str}. 응답이 친근하고 환영하는 느낌이 들도록 해주세요.",
-        conversation_history=state.get('messages', [])
+        conversation_history=state.get('messages', []),
     )
     optimized_response = optimizer.optimize_response(better_question)
     print(f"Optimized Response: {optimized_response}")
@@ -100,6 +102,7 @@ def graph_main(state: State) -> Dict:
         "question": state["messages"][-1]["content"],
         "response": "",
         "is_book_question": False,
+        "is_negative": False,
         "generation": "",
         "documents": [],
         "better_question": "",

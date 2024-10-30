@@ -32,13 +32,27 @@ def serve_likes():
 def chatbot_route():
     data = request.get_json()
     question = data.get('message')
+    history = data.get('history')
     if not question:
         return jsonify({'error': '메시지를 입력해주세요.'}), 400
 
+    if history:
     # 초기 상태 설정
-    state = {
-        "messages": [{"role": "user", "content": question}],
-    }
+        state = {
+            "messages": [
+                *history,
+                {"role": "user", "content": question}
+            ]
+        }
+    else:
+        state = {
+            "messages": [
+                {"role": "user", "content": question}
+            ]
+        }
+    
+    
+    
 
     # 그래프 실행
     result = graph_main(state)

@@ -19,10 +19,11 @@ class OptimizationPrompt(BaseModel):
     optimized_response: str = Field(description="톤과 스타일을 조정한 후의 최적화된 답변.")
 
 # 언어 모델 초기화
-tone_style_llm = ChatOpenAI(model="gpt-4", temperature=0.7)
+system_prompt = "You are a helpful assistant that speaks only in Korean."
+tone_style_llm = ChatOpenAI(model="gpt-4", temperature=0)
 
 class Optimization:
-    def __init__(self, tone, style, num_books=1, additional_instructions=None, conversation_history=None):
+    def __init__(self, tone, style, num_books=1, additional_instructions=system_prompt, conversation_history=None):
         self.tone = tone
         self.style = style
         self.num_books = num_books
@@ -34,13 +35,6 @@ class Optimization:
         # 톤과 스타일 최적화를 위한 시스템 프롬프트 정의
         self.optimization_system = f"""당신은 사용자의 질문에 대해 친절하지만 전문적으로 답변하는 도서 전문가입니다. 사용자의 다양한 질문에 유연하게 대응하되, 책을 추천해달라는 요청이 들어오면 아래의 구조를 따라 총 {self.num_books}권의 책을 추천하세요:
 
-구조:
-1. 책 이미지
-2. 책 제목 (책 제목은 큰따옴표로 감싸세요: "책 제목")
-3. 작가
-4. 출판사
-5. 구매 링크
-6. 필요에 따라 후속 질문이나 제안을 추가하세요.
 
 주의사항:
 - 반드시 실제로 존재하는 책만 추천하세요.
