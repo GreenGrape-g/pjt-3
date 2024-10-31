@@ -1,13 +1,13 @@
 from typing import List, Dict
 from typing_extensions import TypedDict
 from langgraph.graph import END, StateGraph, START
+from langchain.schema import Document
 
 from .custom_types import State
 from .chatbot_system import chatbot
 from .judgement import is_about_books, decide_next_node, is_about_negative
 from .elems import question_rewriter, web_search_tool
 from .optimization import Optimization
-from .nlp_utils import extract_top_korean_phrases
 
 class GraphState(TypedDict):
     """Graph의 상태를 나타냅니다."""
@@ -43,29 +43,28 @@ def transform_query_node(state: GraphState) -> GraphState:
     return state
 
 def web_search_node(state: GraphState) -> GraphState:
-    """재작성된 질문을 기반으로 웹 검색을 수행합니다."""
-    print("---WEB SEARCH NODE---")
-    better_question = state.get("better_question", "")
-    documents = state.get("documents", [])
+    """
+    Web search based on the re-phrased question.
 
-    # 웹 검색 수행
-    docs = web_search_tool.invoke(better_question)
-    print("Docs:", docs)
+    Args:
+        state (dict): The current graph state
 
-    # 검색 결과 처리
-    for doc in docs:
-        documents.append(doc)
-    
+    Returns:
+        state (dict): Updates documents key with appended web results
+    """
+
+    print("---WEB SEARCH---")
+    question = state["question"]
+    documents = state["documents"]
+
+    # Web search
+    docs = web_search_tool.invoke({"query": question})
+    web_results = "\n".join([d["content"] for d in docs])
+    web_results = Document(page_content=web_results)
+    documents.append(web_results)
+
     state["documents"] = documents
-    return state
-
-def extract_top_words_node(state: GraphState) -> GraphState:
-    """검색된 문서에서 상위 단어를 추출합니다."""
-    print("---EXTRACT TOP WORDS---")
-    text = " ".join([doc["content"] for doc in state["documents"]])
-    top_words = extract_top_korean_phrases(text, n=5)
-    state["top_words"] = top_words
-    print(f"Top Words: {top_words}")
+    state["question"] = question
     return state
 
 def optimize_node(state: GraphState) -> GraphState:
@@ -79,7 +78,7 @@ def optimize_node(state: GraphState) -> GraphState:
         return state
 
     # 상위 단어를 추가적인 컨텍스트로 활용
-    top_words_str = ", ".join([word for word, count in top_words])
+    top_words_str = ", ".join([f"{word} ({count})" for word, count in top_words])  # count에 접근 가능
 
     # 응답 최적화
     optimizer = Optimization(
@@ -117,7 +116,6 @@ def graph_main(state: State) -> Dict:
     workflow.add_node("judgement", judgement_node)
     workflow.add_node("transform_query", transform_query_node)
     workflow.add_node("web_search_node", web_search_node)
-    workflow.add_node("extract_top_words", extract_top_words_node)
     workflow.add_node("optimize", optimize_node)
 
     # 에지 정의
@@ -136,8 +134,7 @@ def graph_main(state: State) -> Dict:
 
     # transform_query 이후의 노드 연결
     workflow.add_edge("transform_query", "web_search_node")
-    workflow.add_edge("web_search_node", "extract_top_words")
-    workflow.add_edge("extract_top_words", "optimize")
+    workflow.add_edge("web_search_node", "optimize")
     workflow.add_edge("optimize", END)
 
     # 그래프 컴파일

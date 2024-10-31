@@ -13,7 +13,7 @@ def is_about_books(response: str) -> bool:
 def is_about_negative(response: str) -> bool:
     """챗봇의 응답에 부정적인 단어가 포함되어 있는지 여부를 판단합니다."""
     negative_keywords = [
-        '불가능', '죄송합니다.', '추천받고'
+        '불가능', '받고', '이 중에서 '
     ]
     return any(keyword in response for keyword in negative_keywords)
 
@@ -27,10 +27,11 @@ def decide_next_node(state: Dict) -> str:
     Returns:
         str: 다음 노드 이름.
     """
+            # 부정적인 응답을 먼저 확인
     if state.get("is_negative", False):
         return "end"
+    # 그다음 책 관련 질문을 확인
     elif state.get("is_book_question", False):
         return "transform_query"
     else:
         return "end"
-
