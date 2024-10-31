@@ -16,6 +16,10 @@ def serve_home():
 
 # 다른 정적 페이지 제공
 @app.route('/books')
+def serve_book():
+    return send_from_directory('.', 'book.html')
+
+@app.route('/bookshelf')
 def serve_bookshelf():
     return send_from_directory('.', 'bookshelf.html')
 
