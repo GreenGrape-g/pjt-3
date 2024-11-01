@@ -232,7 +232,7 @@ class Optimization:
 
             book_image = f"![책 이미지]({book_info['image']})"
 
-            book_details = f"{idx}. 책 이미지: {book_image}\n책 제목: \"{main_title}\"\n작가: {author_text}\n출판사: {book_info['publisher']}\n추천 이유: {summary}\n구매 링크: {purchase_links}"
+            book_details = f"책 이미지: {book_image}\n책 제목: \"{main_title}\"\n작가: {author_text}\n출판사: {book_info['publisher']}\n추천 이유: {summary}\n구매 링크: {purchase_links}"
             book_details_list.append(book_details)
 
         follow_up = "\n\n더 궁금한 점이 있으시면 말씀해주세요!"
