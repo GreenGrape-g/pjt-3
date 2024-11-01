@@ -247,7 +247,7 @@ class Optimization:
         # 최종 응답 생성
         book_details_text = '\n\n'.join(book_details_list)
         follow_up = "\n\n더 궁금한 점이 있으시면 말씀해주세요!"
-        final_response = f"{updated_text}\n\n{book_details_text}{follow_up}"
+        final_response = f"{book_details_text}{follow_up}"
         logging.debug(f"Final response constructed: {final_response}")
         return final_response
 
