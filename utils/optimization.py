@@ -175,7 +175,7 @@ class Optimization:
     def insert_book_info(self, text, book_info_list):
         """
         책 정보를 텍스트에 삽입.
-        필수 구성 요소: 책 이미지, 책 제목, 작가, 출판사, 책 정보, 구매 링크.
+        필수 구성 요소: 책 이미지, 책 제목, 작가, 출판사, 추천 이유, 구매 링크.
         """
         # 텍스트에서 기존 책 정보 제거
         keys_to_remove = ['책 이미지', '책 제목', '작가', '출판사', '추천 이유', '구매 링크']
@@ -207,12 +207,13 @@ class Optimization:
             description = book_info.get("description", "상세 설명을 찾을 수 없습니다.")
             summary = self.summarize_text(description, 2)
 
-            # 구매 링크 생성 (네이버의 링크 사용)
-            purchase_link = book_info.get("link", "")
-            if purchase_link:
-                purchase_links = f"[네이버]({purchase_link})"
-            else:
-                purchase_links = "구매 링크를 찾을 수 없습니다."
+            # 구매 링크 생성
+            encoded_title = requests.utils.quote(title)
+            kyobo_link = f"https://search.kyobobook.co.kr/search?keyword={encoded_title}"
+            aladin_link = f"https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=All&SearchWord={encoded_title}"
+            yes24_link = f"https://www.yes24.com/Product/Search?query={encoded_title}"
+
+            purchase_links = f"[교보문고]({kyobo_link}), [알라딘]({aladin_link}), [예스24]({yes24_link})"
 
             # 작가 이름 처리
             authors = [a.strip() for a in author.split(',')]
@@ -227,7 +228,7 @@ class Optimization:
                         formatted_authors.append(author_name)
                     else:
                         # 외국 작가의 경우 원어 이름을 괄호 안에 표시
-                        # 여기서는 원어 이름을 제공하지 않으므로 단순히 작가 이름을 사용
+                        # 원어 이름을 별도로 제공하지 않으므로 그대로 사용
                         formatted_authors.append(author_name)
 
             author_text = ', '.join(formatted_authors)
@@ -238,7 +239,7 @@ class Optimization:
                 f"책 제목: \"{title}\"\n"  # 큰 따옴표로 책 제목 감싸기
                 f"작가: '{author_text}'\n"    # 작은 따옴표로 작가 이름 감싸기
                 f"출판사: {book_info.get('publisher', '출판사 정보 없음')}\n"
-                f"설명: {summary}\n"
+                f"추천 이유: {summary}\n"
                 f"구매 링크: {purchase_links}"
             )
             book_details_list.append(book_details)
