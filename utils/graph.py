@@ -30,7 +30,7 @@ def judgement_node(state: GraphState) -> GraphState:
 def transform_query_node(state: GraphState) -> GraphState:
     """질문을 재작성하여 더 나은 형태로 변환합니다."""
     print("---TRANSFORM QUERY---")
-    question = state["question"]
+    question = state["response"]
     state["better_question"] = question_rewriter.invoke({"question": question})
     return state
 
@@ -52,14 +52,12 @@ def optimize_node(state: GraphState) -> GraphState:
     print("---OPTIMIZE RESPONSE---")
     try:
         better_question = state.get("better_question", "")
-        top_words = state.get("top_words", [])
-        top_words_str = ", ".join([f"{word} ({count})" for word, count in top_words])
 
         optimizer = Optimization(
             tone="친절한",
             style="설득력 있는",
             num_books=1,
-            additional_instructions=f"상위 단어: {top_words_str}. 응답이 친근하고 환영하는 느낌이 들도록 해주세요.",
+            additional_instructions=f"응답이 친근하고 환영하는 느낌이 들도록 해주세요.",
             conversation_history=state.get("messages", []),
         )
         state["generation"] = optimizer.optimize_response(better_question)
@@ -79,7 +77,6 @@ def graph_main(state: State) -> Dict:
         "generation": "",
         "documents": [],
         "better_question": "",
-        "top_words": [],
         "messages": state["messages"],
     }
 

@@ -1,8 +1,22 @@
 from dotenv import load_dotenv
 from langchain.chat_models import ChatOpenAI
 from langchain.agents import initialize_agent, AgentType
+from langchain.tools import Tool  # TavilyTool이 존재한다고 가정
 
 load_dotenv()
+
+def tavily_function(input_text):
+    # 여기에 tavily와 연결되는 API 호출이나 원하는 기능을 정의합니다.
+    # 예를 들어, 특정 API로 요청을 보내거나 특정 작업을 수행하도록 설정
+    response = f"tavily 기능으로 처리된 입력: {input_text}"  # 예시 응답
+    return response
+
+# Tool 클래스를 사용하여 커스텀 도구 생성
+tavily_tool = Tool(
+    name="TavilyTool",
+    func=tavily_function,
+    description="사용자의 요청을 tavily 기능으로 처리하는 도구입니다."
+)
 
 class ChatbotSystem:
     """Chatbot 시스템을 초기화하고 메시지를 통해 응답을 생성하는 클래스입니다."""
@@ -11,9 +25,12 @@ class ChatbotSystem:
         # LLM 초기화
         self.llm = ChatOpenAI(model="gpt-4", temperature=0)
 
+        # tavily 도구를 포함한 도구 리스트 초기화
+        tools = [tavily_tool]  # tavily_tool을 추가한 도구 리스트
+
         # 에이전트 초기화
         self.agent_executor = initialize_agent(
-            tools=[],  # 도구가 필요하지 않다면 빈 리스트로 설정
+            tools=tools,
             llm=self.llm,
             agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
             verbose=True,
@@ -23,7 +40,7 @@ class ChatbotSystem:
                                   "**모든 응답은 한국어로 작성합니다.**"
             }
         )
-
+        
     def generate_response(self, state):
         """주어진 상태로부터 응답을 생성하고 상태를 업데이트합니다."""
         last_message = state["messages"][-1]["content"]
