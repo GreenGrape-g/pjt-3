@@ -23,7 +23,7 @@ class ChatbotSystem:
 
     def __init__(self):
         # LLM 초기화
-        self.llm = ChatOpenAI(model="gpt-4", temperature=0)
+        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
 
         # tavily 도구를 포함한 도구 리스트 초기화
         tools = [tavily_tool]  # tavily_tool을 추가한 도구 리스트

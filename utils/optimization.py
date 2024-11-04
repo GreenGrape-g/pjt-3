@@ -19,7 +19,7 @@ system_prompt = """당신은 도움이 되는 도서 추천 전문가입니다.
 영어나 다른 외국어로 된 답변은 절대 하지 마세요."""
 
 # 언어 모델 초기화
-tone_style_llm = ChatOpenAI(model="gpt-4", temperature=0)
+tone_style_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
 
 class Optimization:
     def __init__(self, tone, style, num_books=1, additional_instructions=None, conversation_history=None):
@@ -47,7 +47,7 @@ class Optimization:
 
 사용자의 다양한 질문에 유연하게 대응하되, 책을 추천해달라는 요청이 들어오면 아래의 구조를 따라 총 {self.num_books}권의 유일한 책을 추천하세요:
 
-주의사항:
+주요 사항:
 - 모든 답변은 반드시 한국어로만 작성하세요.
 - 절대로 영어로 답변하지 마세요.
 - 반드시 실제로 존재하는 책만 추천하세요.
@@ -55,7 +55,7 @@ class Optimization:
 - 동일한 책을 여러 번 추천하지 마세요.
 - 이전 대화 내용을 참고하여 답변하세요.
 - 각 항목이 끝날 때마다 줄바꿈을 하세요.
-- 책 제목을 추출하기 쉽게 큰따옴표로 감싸주세요.
+- 책 제목을 추출하기 쉽게 작은 따옴표로 감싸주세요.
 - 책을 제외한 다른 미디어는 추천하지 못합니다.
 - 각 답변을 완료한 뒤에는 엔터로 구분해주세요.
 - 답변은 한국어로 해주세요.
@@ -150,8 +150,8 @@ class Optimization:
         """
         주어진 텍스트에서 책 제목들 추출.
         """
-        # 책 제목이 큰따옴표로 감싸져 있다고 가정
-        titles = re.findall(r'"([^"]+)"', text)
+        # 책 제목이 작은따옴표로 감싸져 있다고 가정
+        titles = re.findall(r"'([^']+)'", text)
         # 중복 제거
         unique_titles = list(set(titles))
         logging.debug(f"Extracted unique titles from text: {unique_titles}")
@@ -165,7 +165,7 @@ class Optimization:
         lines = text.split('\n')
         new_lines = []
         for line in lines:
-            title_in_line = re.findall(r'"([^"]+)"', line)
+            title_in_line = re.findall(r"'([^']+)'", line)
             if not title_in_line or title_in_line[0] in valid_titles:
                 new_lines.append(line)
         rewritten_text = '\n'.join(new_lines)
@@ -175,19 +175,18 @@ class Optimization:
     def insert_book_info(self, text, book_info_list):
         """
         책 정보를 텍스트에 삽입.
-        필수 구성 요소: 책 이미지, 책 제목, 작가, 출판사, 추천 이유, 구매 링크.
+        필수 구성 요소: 책 제목, 작가, 출판사, 추천 이유.
         """
         # 텍스트에서 기존 책 정보 제거
-        keys_to_remove = ['책 이미지', '책 제목', '작가', '출판사', '추천 이유', '구매 링크']
+        keys_to_remove = ['책 제목', '작가', '출판사', '추천 이유']
         for key in keys_to_remove:
             pattern = f"^{key}:.*$"
             text = re.sub(pattern, '', text, flags=re.MULTILINE)
 
         updated_text = ' '.join(text.split())
 
-        # 이미 책 이미지가 삽입된 응답인 경우 바로 반환
-        if re.search(r'책 이미지:', updated_text):
-            return updated_text
+        # 책 이미지와 구매 링크 관련 코드 제거
+        # 이미 책 이미지가 삽입된 응답인 경우를 처리할 필요가 없으므로 관련 코드 제거
 
         # 고유 책 정보 필터링
         seen_titles = set()
@@ -204,16 +203,9 @@ class Optimization:
             # HTML 태그 제거 및 소제목 제거
             title = re.sub('<[^<]+?>', '', book_info['title']).split('(')[0].strip()
             author = book_info['author']
+            publisher = book_info.get("publisher", "출판사 정보 없음")
             description = book_info.get("description", "상세 설명을 찾을 수 없습니다.")
-            summary = self.summarize_text(description, 2)
-
-            # 구매 링크 생성
-            encoded_title = requests.utils.quote(title)
-            kyobo_link = f"https://search.kyobobook.co.kr/search?keyword={encoded_title}"
-            aladin_link = f"https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=All&SearchWord={encoded_title}"
-            yes24_link = f"https://www.yes24.com/Product/Search?query={encoded_title}"
-
-            purchase_links = f"[교보문고]({kyobo_link}), [알라딘]({aladin_link}), [예스24]({yes24_link})"
+            summary = self.summarize_text(description, 3)
 
             # 작가 이름 처리
             authors = [a.strip() for a in author.split(',')]
@@ -233,14 +225,12 @@ class Optimization:
 
             author_text = ', '.join(formatted_authors)
 
-            # 책 세부정보 템플릿
+            # 책 세부정보 템플릿 (이미지와 구매 링크 제외)
             book_details = (
-                f"책 이미지: ![책 이미지]({book_info.get('image', '')})\n"
-                f"책 제목: \"{title}\"\n"  # 큰 따옴표로 책 제목 감싸기
+                f"책 제목: '{title}'\n"  # 작은 따옴표로 책 제목 감싸기
                 f"작가: '{author_text}'\n"    # 작은 따옴표로 작가 이름 감싸기
-                f"출판사: {book_info.get('publisher', '출판사 정보 없음')}\n"
-                f"추천 이유: {summary}\n"
-                f"구매 링크: {purchase_links}"
+                f"출판사: {publisher}\n"
+                f"추천 이유: {summary}"
             )
             book_details_list.append(book_details)
 
@@ -310,10 +300,7 @@ class Optimization:
             title = item.get("title", "").replace("<b>", "").replace("</b>", "")
             author = item.get("author", "")
             publisher = item.get("publisher", "")
-            image = item.get("image", "")
             description = item.get("description", "")
-            link = item.get("link", "")
-            isbn = item.get("isbn", "")
 
             score = 0
             # 제목에 한글이 포함된 경우 높은 점수
@@ -335,10 +322,7 @@ class Optimization:
                 "title": title,
                 "author": author,
                 "publisher": publisher,
-                "image": image,
                 "description": description,
-                "link": link,
-                "isbn": isbn,
                 "score": score
             })
 

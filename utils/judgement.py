@@ -32,6 +32,6 @@ def decide_next_node(state: Dict) -> str:
         return "end"
     # 그다음 책 관련 질문을 확인
     elif state.get("is_book_question", False):
-        return "transform_query"
+        return "optimize"
     else:
         return "end"
