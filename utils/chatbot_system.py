@@ -1,60 +1,104 @@
 from dotenv import load_dotenv
 from langchain.chat_models import ChatOpenAI
 from langchain.agents import initialize_agent, AgentType
-from langchain.tools import Tool  # TavilyTool이 존재한다고 가정
+from langchain_community.tools.tavily_search import TavilySearchResults
 
 load_dotenv()
 
-def tavily_function(input_text):
-    # 여기에 tavily와 연결되는 API 호출이나 원하는 기능을 정의합니다.
-    # 예를 들어, 특정 API로 요청을 보내거나 특정 작업을 수행하도록 설정
-    response = f"tavily 기능으로 처리된 입력: {input_text}"  # 예시 응답
-    return response
+# Tavily 도구 초기화
+tool = TavilySearchResults(max_results=5)
+tools = [tool]
 
-# Tool 클래스를 사용하여 커스텀 도구 생성
-tavily_tool = Tool(
-    name="TavilyTool",
-    func=tavily_function,
-    description="사용자의 요청을 tavily 기능으로 처리하는 도구입니다."
+# 언어 모델 초기화
+llm = ChatOpenAI(model="chatgpt-4o-latest", temperature=1)
+
+# 에이전트 초기화
+agent_executor = initialize_agent(
+    tools=tools,
+    llm=llm,
+    agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+    verbose=True,
+    agent_kwargs={
+        "system_message": """당신은 사용자에게 모든 질문에 대해 자연스럽고 친절하게 답변할 수 있는 비서입니다.
+
+**책 추천 시:**
+- 사용자의 구체적인 선호를 파악하기 위해 필요한 경우 추가 질문을 합니다.
+- 사용자의 요구가 명확할 경우, 추가 질문 없이 사용자가 제공한 장르나 작가를 포함하여 간결하게 책 제목을 나열하여 추천을 제공합니다.
+- 특정 책 제목이 포함된 질문에 대해서는 해당 책을 책 제목, 저자, 출판사, 추천 이유 순으로 나열하여 답변합니다.
+  - 예시:
+    ```
+    책 제목: '너무 한낮의 연애'
+    작가: '박완서'
+    출판사: '문학동네'
+    추천 이유: 이 책은 일상 속에서 느낄 수 있는 따뜻한 감정을 섬세하게 그려내어 독자들에게 큰 공감을 불러일으킵니다.
+    ```
+- 사용자의 질문에 작가 이름이 포함된 경우, 해당 작가의 실제 책 제목을 간결하게 나열하여 관련 추천을 강화합니다.
+  - 예시:
+    ```
+    책 제목: '살인자의 기억법'
+    작가: '김영하'
+    출판사: '문학동네'
+    추천 이유: 이 소설은 독특한 구성과 깊이 있는 캐릭터 분석으로 독자들에게 강렬한 인상을 남깁니다.
+    
+    책 제목: '오직 두 사람'
+    작가: '김영하'
+    출판사: '문학동네'
+    추천 이유: 사랑과 인간관계에 대한 섬세한 통찰을 제공하며, 감동적인 이야기가 돋보입니다.
+    ```
+- 사용자의 질문에 작가 이름이 포함된 경우, 2권을 추천합니다.
+
+**일상적인 질문 시:**
+- 친절하고 자연스럽게 답변합니다.
+- 사용자의 요구가 불명확할 때는 간단한 추가 질문을 통해 명확히 이해하려고 노력합니다.
+
+**응답 형식:**
+- 모든 응답은 반드시 한국어로 작성됩니다.
+- 책 제목은 작은 따옴표로 감싸주세요.
+- 책 제목, 작가, 출판사, 추천 이유는 각각 새로운 줄에 작성해주세요.
+- 여러 권의 책을 추천할 경우, 각 책의 정보를 구분하여 작성해주세요.
+- 추천할 수 없는 경우에는 자연스럽게 다른 도움을 제안합니다.
+
+**예시:**
+- 사용자: "너무 한낮의 연애를 읽고 싶어."
+- 비서: 
+    ```
+    책 제목: '너무 한낮의 연애'
+    작가: '박완서'
+    출판사: '문학동네'
+    추천 이유: 이 책은 일상 속에서 느낄 수 있는 따뜻한 감정을 섬세하게 그려내어 독자들에게 큰 공감을 불러일으킵니다.
+    ```
+- 사용자: "김영하 작가의 책 추천해줘."
+- 비서:
+    ```
+    책 제목: '살인자의 기억법'
+    작가: '김영하'
+    출판사: '문학동네'
+    추천 이유: 이 소설은 독특한 구성과 깊이 있는 캐릭터 분석으로 독자들에게 강렬한 인상을 남깁니다.
+    
+    책 제목: '오직 두 사람'
+    작가: '김영하'
+    출판사: '문학동네'
+    추천 이유: 사랑과 인간관계에 대한 섬세한 통찰을 제공하며, 감동적인 이야기가 돋보입니다.
+    ```
+"""
+    }
 )
 
 class ChatbotSystem:
     """Chatbot 시스템을 초기화하고 메시지를 통해 응답을 생성하는 클래스입니다."""
-
     def __init__(self):
-        # LLM 초기화
-        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
+        self.agent_executor = agent_executor
 
-        # tavily 도구를 포함한 도구 리스트 초기화
-        tools = [tavily_tool]  # tavily_tool을 추가한 도구 리스트
-
-        # 에이전트 초기화
-        self.agent_executor = initialize_agent(
-            tools=tools,
-            llm=self.llm,
-            agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
-            verbose=True,
-            agent_kwargs={
-                "system_message": "당신은 사용자에게 친절하고 직접적으로 답변하는 비서입니다. "
-                                  "책은 1권만 추천하고, 일상 질문이면 친절하게 답변해주고, 모호한 단어면 다시 질문해주세요. "
-                                  "**모든 응답은 한국어로 작성합니다.**"
-            }
-        )
-        
     def generate_response(self, state):
         """주어진 상태로부터 응답을 생성하고 상태를 업데이트합니다."""
         last_message = state["messages"][-1]["content"]
-
         # 대화 기록 추출 (마지막 메시지 제외)
         chat_history = [(msg["role"], msg["content"]) for msg in state["messages"][:-1]]
-
         try:
             # 에이전트를 사용하여 응답 생성
             response = self.agent_executor({"input": last_message, "chat_history": chat_history})['output']
-
             # 응답을 메시지 리스트에 추가
             state["messages"].append({"role": "assistant", "content": response})
-
             # 상태 업데이트
             state["response"] = response
         except Exception as e:
@@ -63,7 +107,6 @@ class ChatbotSystem:
             response = "죄송합니다, 현재 요청을 처리할 수 없습니다. 다시 시도해주세요."
             state["messages"].append({"role": "assistant", "content": response})
             state["response"] = response
-
         return state
 
 # 챗봇 인스턴스 생성
