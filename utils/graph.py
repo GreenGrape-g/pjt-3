@@ -8,8 +8,35 @@ from .judgement import decide_next_node, is_about_books, is_about_author, is_abo
 from .optimization import Optimization
 from .elems import web_search_tool
 
+from .judgement import chatbot, create_response, human_node  # 'chatbot' 함수만 임포트 (순환 참조 방지)
+
+# ToolMessage 클래스 정의
+class ToolMessage(BaseMessage):
+    def __init__(self, content: str, tool_call_id: Optional[str] = None):
+        super().__init__(content=content)
+        self.tool_call_id = tool_call_id
+
+# create_response 함수 정의
+def create_response(response: str, ai_message: AIMessage) -> ToolMessage:
+    return ToolMessage(
+        content=response,
+        tool_call_id=ai_message.tool_calls[0]["id"],
+    )
+
+# GraphState 클래스 정의
 class GraphState(TypedDict):
-    """Graph의 상태를 나타냅니다."""
+    """
+    그래프의 상태를 나타냅니다.
+
+    속성:
+        question: 원본 질문
+        generation: 최종 생성된 응답
+        web_search: 웹 검색 수행 여부 ('Yes' 또는 'No')
+        documents: 검색된 문서 리스트
+        better_question: 재작성된 질문
+        author: 추출된 저자 이름
+        ask_human: 인간에게 도움을 요청하는 플래그
+    """
     question: str
     response: str
     documents: List[Dict]
