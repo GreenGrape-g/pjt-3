@@ -26,7 +26,7 @@ def is_about_author(response: str) -> bool:
 def is_about_negative(response: str) -> bool:
     """챗봇의 응답에 부정적인 단어가 포함되어 있는지 여부를 판단합니다."""
     negative_keywords = [
-        '불가능', '받고', '이 중에서', '?', '등', '중에서', '몇', '두 권', '세 권'
+        '불가능', '받고', '이 중에서', '?', '등', '중에서', '몇', '두 권'
     ]
     return any(keyword in response for keyword in negative_keywords)
 
