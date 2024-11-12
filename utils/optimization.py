@@ -27,7 +27,7 @@ class Optimization:
             raise ValueError("NAVER_CLIENT_ID 및 NAVER_CLIENT_SECRET 환경 변수를 설정해주세요.")
         
         # 시스템 프롬프트 설정 (책 제목만 대괄호 사용)
-        self.optimization_system = """당신은 사용자의 질문에 대해 친절하면서도 전문적으로 답변하는 도서 전문가입니다.
+        self.optimization_system = """당신은 사용자의 질문에 대해 친절하게 답변하는 도서 전문가입니다.
 
 **언어 관련 필수 지침:**
 * 모든 상황에서 반드시 한국어로만 답변하세요.
