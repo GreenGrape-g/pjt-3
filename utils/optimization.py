@@ -224,7 +224,7 @@ class Optimization:
             author = book_info['author']
             publisher = book_info.get("publisher", "출판사 정보 없음")
             description = book_info.get("description", "상세 설명을 찾을 수 없습니다.")
-            summary = self.summarize_text(description, 2)
+            summary = self.summarize_text(description, 3)
             # 작가 이름 처리
             authors = [a.strip() for a in author.split(',')]
             formatted_authors = []

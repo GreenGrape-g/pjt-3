@@ -76,16 +76,6 @@ def serve_static_files(path):
 def page_not_found(e):
     return "페이지를 찾을 수 없습니다.", 404
 
-# 정적 파일 제공 (CSS, JS, 이미지 등)
-@app.route('/static/<path:path>')
-def serve_static_files(path):
-    return send_from_directory('static', path)
-
-# 404 에러 핸들러
-@app.errorhandler(404)
-def page_not_found(e):
-    return "페이지를 찾을 수 없습니다.", 404
-
 if __name__ == '__main__':
     app.run(debug=True)
 

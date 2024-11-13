@@ -8,21 +8,6 @@ from .judgement import decide_next_node, is_about_books, is_about_author, is_abo
 from .optimization import Optimization
 from .elems import web_search_tool
 
-from .judgement import chatbot, create_response, human_node  # 'chatbot' 함수만 임포트 (순환 참조 방지)
-
-# ToolMessage 클래스 정의
-class ToolMessage(BaseMessage):
-    def __init__(self, content: str, tool_call_id: Optional[str] = None):
-        super().__init__(content=content)
-        self.tool_call_id = tool_call_id
-
-# create_response 함수 정의
-def create_response(response: str, ai_message: AIMessage) -> ToolMessage:
-    return ToolMessage(
-        content=response,
-        tool_call_id=ai_message.tool_calls[0]["id"],
-    )
-
 # GraphState 클래스 정의
 class GraphState(TypedDict):
     """
