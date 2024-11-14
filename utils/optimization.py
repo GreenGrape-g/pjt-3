@@ -281,7 +281,7 @@ class Optimization:
             summary = self.summarize_text(description, 3)
 
             book_details = (
-                f"책 제목: [{title}]\n"
+                f"책 제목: {title}\n"
                 f"작가: {author}\n"
                 f"출판사: {publisher}\n"
                 f"추천 이유: {summary}"
