@@ -12,9 +12,11 @@
 ```bash
 코드 복사
 git clone https://github.com/yourusername/yourproject.git
-cd yourproject```
+cd yourproject ```
+
 2. 가상 환경 생성 및 활성화
-bash
+
+```bash
 코드 복사
 # 가상 환경 생성
 python -m venv venv
@@ -24,25 +26,27 @@ python -m venv venv
 source venv/bin/activate
 
 # Windows
-venv\Scripts\activate
+venv\Scripts\activate ```
+
 3. 의존성 설치
-bash
+``` bash
 코드 복사
-pip install -r requirements.txt
+pip install -r requirements.txt ```
+
 4. 환경 변수 설정
 프로젝트 루트 디렉토리에 .env 파일을 생성하고 다음 내용을 추가하세요:
 
-plaintext
+``` plaintext
 코드 복사
 NAVER_CLIENT_ID=your_naver_client_id
 NAVER_CLIENT_SECRET=your_naver_client_secret
-OPENAI_API_KEY=your_openai_api_key
+OPENAI_API_KEY=your_openai_api_key ```
 주의: 실제 API 키 값으로 대체해야 합니다.
 
 5. 애플리케이션 실행
-bash
+``` bash
 코드 복사
-flask run
+flask run``` 
 웹 브라우저에서 http://localhost:5000에 접속하여 애플리케이션을 사용합니다.
 
 사용 방법
@@ -58,7 +62,7 @@ flask run
 
 bash
 코드 복사
-git checkout -b feature/your-feature-name
+``` git checkout -b feature/your-feature-name ```
 변경 사항을 커밋합니다:
 
 bash
