@@ -9,10 +9,10 @@
 ## 설치 및 실행 방법
 
 1. 리포지토리 클론
-bash
+```bash
 코드 복사
 git clone https://github.com/yourusername/yourproject.git
-cd yourproject
+cd yourproject```
 2. 가상 환경 생성 및 활성화
 bash
 코드 복사
