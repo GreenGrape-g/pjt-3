@@ -9,42 +9,43 @@
 ## 설치 및 실행 방법
 
 1. 리포지토리 클론
+```
 git clone https://github.com/yourusername/yourproject.git
-cd yourproject ```
+cd yourproject 
+```
 
 2. 가상 환경 생성 및 활성화
 
-```bash
-코드 복사
+```
 # 가상 환경 생성
 python -m venv venv
-
 # 가상 환경 활성화
 # macOS/Linux
 source venv/bin/activate
 
 # Windows
-venv\Scripts\activate ```
+venv\Scripts\activate 
+```
 
 3. 의존성 설치
-``` bash
-코드 복사
-pip install -r requirements.txt ```
+``` 
+pip install -r requirements.txt 
+```
 
 4. 환경 변수 설정
 프로젝트 루트 디렉토리에 .env 파일을 생성하고 다음 내용을 추가하세요:
 
-``` plaintext
-코드 복사
+``` 
 NAVER_CLIENT_ID=your_naver_client_id
 NAVER_CLIENT_SECRET=your_naver_client_secret
-OPENAI_API_KEY=your_openai_api_key ```
+OPENAI_API_KEY=your_openai_api_key 
+```
 주의: 실제 API 키 값으로 대체해야 합니다.
 
 5. 애플리케이션 실행
-``` bash
-코드 복사
-flask run``` 
+```
+flask run
+``` 
 웹 브라우저에서 http://localhost:5000에 접속하여 애플리케이션을 사용합니다.
 
 사용 방법
@@ -54,24 +55,24 @@ flask run```
 기여 방법
 프로젝트에 기여하고 싶으시다면 다음 절차를 따라주세요:
 
-이 리포지토리를 포크합니다.
+1. 이 리포지토리를 포크합니다.
 
-새로운 브랜치를 생성합니다:
+2. 새로운 브랜치를 생성합니다:
 
-bash
-코드 복사
-``` git checkout -b feature/your-feature-name ```
-변경 사항을 커밋합니다:
+``` 
+git checkout -b feature/your-feature-name
+```
+3. 변경 사항을 커밋합니다:
 
-bash
-코드 복사
+```
 git commit -m 'Add new feature'
-브랜치에 푸시합니다:
+```
+4. 브랜치에 푸시합니다:
 
-bash
-코드 복사
+```
 git push origin feature/your-feature-name
-Pull Request를 생성합니다.
+```
+5. Pull Request를 생성합니다.
 
 라이선스
 이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 LICENSE 파일을 참고하세요.
