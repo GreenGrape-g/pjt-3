@@ -9,12 +9,12 @@
 ## 설치 및 실행 방법
 
 1. 리포지토리 클론
-``` git clone https://github.com/yourusername/yourproject.git
-cd yourproject ```
-
+git clone https://github.com/yourusername/yourproject.git
+cd yourproject
 2. 가상 환경 생성 및 활성화
-
-``` # 가상 환경 생성
+bash
+코드 복사
+# 가상 환경 생성
 python -m venv venv
 
 # 가상 환경 활성화
@@ -22,8 +22,7 @@ python -m venv venv
 source venv/bin/activate
 
 # Windows
-venv\Scripts\activate ```
-
+venv\Scripts\activate
 3. 의존성 설치
 bash
 코드 복사
