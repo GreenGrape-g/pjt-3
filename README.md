@@ -78,4 +78,4 @@ git push origin feature/your-feature-name
 이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 LICENSE 파일을 참고하세요.
 
 문의
-프로젝트 관련 문의는 your.email@example.com으로 연락해주세요.
+프로젝트 관련 문의는 greengrgr1102@gmail.com으로 연락해주세요.
