@@ -24,8 +24,8 @@ def serve_book():
     """
     return send_from_directory('.', 'book.html')
 
-@app.route('/bookshelf')
-def serve_bookshelf():
+@app.route('/mybookshelf')
+def serve_mybookshelf():
     """
     '/bookshelf' 경로로 접근 시 'bookshelf.html' 페이지를 제공합니다.
     """
@@ -38,12 +38,12 @@ def serve_magazine():
     """
     return send_from_directory('.', 'magazine.html')
 
-@app.route('/likes')
-def serve_likes():
+@app.route('/request')
+def serve_request():
     """
     '/likes' 경로로 접근 시 'likes.html' 페이지를 제공합니다.
     """
-    return send_from_directory('.', 'likes.html')
+    return send_from_directory('.', 'request.html')
 
 # 챗봇 라우트 정의
 @app.route('/chatbot', methods=['POST'])
