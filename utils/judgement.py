@@ -28,11 +28,12 @@ def is_about_author(response: str) -> bool:
     Returns:
         bool: 작가와 관련된 경우 True, 그렇지 않으면 False
     """
-    # 간단한 패턴 매칭을 통해 작가 이름 감지 (실제 구현 시 더 정교한 방법 필요)
-    # 예: '작가: 김영하' 또는 '저자 김영하'
+    # 작가 관련 질문을 더 잘 감지하기 위한 정규식 패턴 개선
     author_patterns = [
-        r'작가[:：]\s*[\w가-힣]+',
-        r'저자[:：]\s*[\w가-힣]+'
+        r'작가\s*(는|가)?\s*누구',
+        r'저자\s*(는|가)?\s*누구',
+        r'누가\s*(썼|저술했)',
+        r'글쓴이\s*(는|가)?\s*누구'
     ]
     for pattern in author_patterns:
         if re.search(pattern, response):
@@ -50,7 +51,7 @@ def is_about_negative(response: str) -> bool:
         bool: 부정적인 단어가 포함된 경우 True, 그렇지 않으면 False
     """
     negative_keywords = [
-        '불가능', '받고', '이 중에서', '?', '등', '중에서', '몇', '두 권'
+        '불가능', '받고', '이 중에서', '등', '중에서', '몇', '두 권을', '두 권'
     ]
     return any(keyword in response for keyword in negative_keywords)
 
@@ -62,16 +63,33 @@ def decide_next_node(state: Dict) -> str:
         state (Dict): 현재 상태 정보를 담은 딕셔너리
 
     Returns:
-        str: 다음 노드의 이름 ('web_search_node_author', 'web_search_node', 'end' 중 하나)
+        str: 다음 노드의 이름 ('optimization', 'end' 중 하나)
     """
     # 부정적인 응답을 먼저 확인
-    if state.get("is_negative", False):
+    if  state.get("is_negative", False):
         return "end"
-    # 작가 관련 질문을 확인
-    elif state.get("is_author_question", False):
-        return "web_search_node_author"
     # 책 관련 질문을 확인
     elif state.get("is_book_question", False):
-        return "web_search_node"
+        return "optimization"
+    # 부정적인 응답을 마지막에 확인
+    # 작가 관련 질문을 마지막에 확인
+    elif state.get("is_author_question", False):
+        return "optimization"
     else:
         return "end"
+
+# 예시로 상태 딕셔너리를 생성하여 함수 동작을 확인합니다.
+if __name__ == "__main__":
+    # 테스트 응답 문자열
+    response = "이 책의 작가는 누구인가요?"
+
+    # 상태 딕셔너리 생성
+    state = {
+        "is_book_question": is_about_books(response),
+        "is_author_question": is_about_author(response),
+        "is_negative": is_about_negative(response)
+    }
+
+    # 다음 노드 결정
+    next_node = decide_next_node(state)
+    print(f"다음 노드: {next_node}")

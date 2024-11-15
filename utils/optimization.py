@@ -51,7 +51,7 @@ class Optimization:
 **언어 관련 필수 지침:**
 * 모든 상황에서 반드시 한국어로만 답변하세요.
 * 외국 도서나 작가에 대해 이야기할 때도 반드시 한국어로 답변하세요.
-* 책 제목은 한국어로 번역된 제목을 우선적으로 사용하되, 원제목을 괄호 안에 표기하세요.
+* 책 제목은 한국어로 번역된 제목을 우선적으로 사용하되, 원제목을 작은따옴표 안에 표기하세요.
 * 작가 이름은 한국어 표기를 먼저 쓰고 원어 이름을 괄호 안에 표기하세요.
 * 영어나 다른 외국어로 된 답변은 절대 금지입니다.
 
@@ -60,7 +60,7 @@ class Optimization:
   - 사용자가 특정 책 제목을 언급하면, 해당 책을 **단독으로 직접 추천**하고 간단한 응원의 메시지를 덧붙이세요.
   - 예시:
     ```
-    책 제목: [너무 한낮의 연애]
+    책 제목: '너무 한낮의 연애'
     작가: 박완서
     출판사: 문학동네
     추천 이유: 이 책은 일상 속에서 느낄 수 있는 따뜻한 감정을 섬세하게 그려내어 독자들에게 큰 공감을 불러일으킵니다. 즐거운 독서 되세요!
@@ -70,12 +70,12 @@ class Optimization:
   - 사용자가 특정 작가를 언급하면, 해당 작가의 **주요 책 제목을 간결하게 나열**하고 각 책에 대해 위와 같은 형식으로 상세히 작성하세요.
   - 예시:
     ```
-    책 제목: [살인자의 기억법]
+    책 제목: '살인자의 기억법'
     작가: 김영하
     출판사: 문학동네
     추천 이유: 이 소설은 독특한 구성과 깊이 있는 캐릭터 분석으로 독자들에게 강렬한 인상을 남깁니다. 추천드립니다!
 
-    책 제목: [오직 두 사람]
+    책 제목: '오직 두 사람'
     작가: 김영하
     출판사: 문학동네
     추천 이유: 사랑과 인간관계에 대한 섬세한 통찰을 제공하며, 감동적인 이야기가 돋보입니다. 즐겁게 읽어보세요!
@@ -85,7 +85,7 @@ class Optimization:
   - 사용자의 요청에 따라 **1권**의 유일한 책을 **간결하게** 작성하고, 책 제목, 저자, 출판사, 추천 이유 순으로 상세히 작성하세요.
   - 예시:
     ```
-    책 제목: [사랑의 온도]
+    책 제목: '사랑의 온도'
     작가: 김민지
     출판사: 시공사
     추천 이유: 이 소설은 사랑의 다양한 모습을 섬세하게 그려내어 독자들에게 깊은 감동을 줍니다.
@@ -102,7 +102,7 @@ class Optimization:
 * 추천할 책은 네이버 API를 사용하여 검색 결과가 있는 책으로 한정하세요.
 * 동일한 책을 여러 번 추천하지 마세요.
 * 이전 대화 내용을 참고하여 답변하세요.
-* 책 제목을 추출하기 쉽게 대괄호로 감싸주세요.
+* 책 제목을 추출하기 쉽게 작은따옴표로 감싸주세요.
 * 각 항목을 명확하게 구분하여 작성하세요.
 * 각 답변을 완료한 뒤에는 줄바꿈을 하세요.
 * 책을 제외한 다른 미디어는 추천하지 못합니다.
@@ -205,7 +205,7 @@ class Optimization:
         Returns:
             list: 추출된 책 제목 리스트
         """
-        titles = re.findall(r"\[([^\]]+)\]", text)
+        titles = re.findall(r"'([^']+)'", text)
         unique_titles = list(set(titles))
         logging.debug(f"Extracted unique titles from text: {unique_titles}")
         return unique_titles
@@ -247,7 +247,7 @@ class Optimization:
         lines = text.split('\n')
         new_lines = []
         for line in lines:
-            title_in_line = re.findall(r"\[([^\]]+)\]", line)
+            title_in_line = re.findall(r"'([^']+)'", line)
             if not title_in_line or title_in_line[0] in valid_titles:
                 new_lines.append(line)
         rewritten_text = '\n'.join(new_lines)
@@ -284,7 +284,7 @@ class Optimization:
             purchase_links = self.generate_purchase_links(title, book_info.get('isbn', ''))
 
             book_details = (
-                f"책 제목: {title} \n"
+                f"책 제목: '{title}' \n"
                 f"작가: {author} \n"
                 f"출판사: {publisher} \n"
                 f"추천 이유: {summary} \n"
@@ -480,7 +480,7 @@ if __name__ == "__main__":
         additional_instructions="응답이 친근하고 환영하는 느낌이 들도록 해주세요.",
         conversation_history=[
             {"role": "user", "content": "로맨스 소설 추천해줘."},
-            {"role": "assistant", "content": "[사랑의 온도], [별의 계절], [마지막 편지] 등이 있습니다. 어떤 책이 궁금하신가요?"}
+            {"role": "assistant", "content": "'사랑의 온도', '별의 계절', '마지막 편지' 등이 있습니다. 어떤 책이 궁금하신가요?"}
         ]
     )
 
