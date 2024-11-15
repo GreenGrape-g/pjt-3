@@ -280,17 +280,21 @@ class Optimization:
             description = book_info.get("description", "상세 설명을 찾을 수 없습니다.")
             summary = self.summarize_text(description, 3)
 
+            # 구매 링크 생성
+            purchase_links = self.generate_purchase_links(title, book_info.get('isbn', ''))
+
             book_details = (
-                f"책 제목: {title}\n"
-                f"작가: {author}\n"
-                f"출판사: {publisher}\n"
-                f"추천 이유: {summary}"
+                f"책 제목: {title} \n"
+                f"작가: {author} \n"
+                f"출판사: {publisher} \n"
+                f"추천 이유: {summary} \n"
+                f"구매 링크:\n {purchase_links} "
             )
             book_details_list.append(book_details)
 
         # 최종 응답 생성
         book_details_text = '\n\n'.join(book_details_list)
-        follow_up = "\n\n더 궁금한 점이 있으시면 말씀해주세요!"
+        follow_up = "\n즐거운 독서 되세요!"
         final_response = f"{book_details_text}{follow_up}"
         logging.debug(f"Final response constructed: {final_response}")
         return final_response
@@ -393,6 +397,7 @@ class Optimization:
             author = item.get("author", "")
             publisher = item.get("publisher", "")
             description = item.get("description", "")
+            isbn = item.get("isbn", "")
             score = 0
 
             # 제목에 한글이 포함된 경우 가산점
@@ -413,12 +418,40 @@ class Optimization:
                 "author": author,
                 "publisher": publisher,
                 "description": description,
+                "isbn": isbn,
                 "score": score
             })
 
         # 점수에 따라 정렬
         filtered_results.sort(key=lambda x: x["score"], reverse=True)
         return filtered_results
+
+    def generate_purchase_links(self, title: str, isbn: str) -> str:
+        """
+        예스24, 알라딘, 교보문고의 구매 링크를 생성합니다.
+
+        Args:
+            title (str): 책 제목
+            isbn (str): ISBN 번호
+
+        Returns:
+            str: 구매 링크 문자열
+        """
+        # ISBN에서 숫자만 추출 (ISBN13 사용)
+        isbn_num = isbn.split(' ')[1] if ' ' in isbn else isbn
+        isbn_num = isbn_num.strip()
+
+        # URL 인코딩된 제목
+        encoded_title = requests.utils.quote(title)
+
+        # 구매 링크 생성 (마크다운 형식으로 변경)
+        yes24_link = f"[예스24](https://www.yes24.com/Product/Search?query={encoded_title})"
+        aladin_link = f"[알라딘](https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=All&SearchWord={encoded_title})"
+        kyobo_link = f"[교보문고](https://search.kyobobook.co.kr/search?keyword={encoded_title})"
+
+        purchase_links = f"- {yes24_link}\n- {aladin_link}\n- {kyobo_link}"
+
+        return purchase_links
 
     @staticmethod
     def contains_korean(text: str) -> bool:
