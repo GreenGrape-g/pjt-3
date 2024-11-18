@@ -1,4 +1,5 @@
-from flask import Flask, send_from_directory, jsonify, request
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 from dotenv import load_dotenv
 from utils.graph import graph_main  # graph.py의 graph_main 임포트
 
@@ -6,7 +7,8 @@ from utils.graph import graph_main  # graph.py의 graph_main 임포트
 load_dotenv()
 
 # Flask 애플리케이션 생성
-app = Flask(__name__, static_folder='.')
+app = Flask(__name__)
+CORS(app)
 
 # 홈 페이지 제공
 @app.route('/')
@@ -14,7 +16,6 @@ def serve_home():
     """
     메인 페이지를 제공하는 라우트입니다.
     """
-    return send_from_directory('.', 'index.html')
 
 # 챗봇 라우트 정의
 @app.route('/chatbot', methods=['POST'])
