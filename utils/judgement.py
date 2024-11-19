@@ -51,7 +51,7 @@ def is_about_negative(response: str) -> bool:
         bool: 부정적인 단어가 포함된 경우 True, 그렇지 않으면 False
     """
     negative_keywords = [
-        '불가능', '받고', '등', '중에서', '몇', '두 권을', '두 권', '네,', '아니요,'
+        '불가능', '받고', '등', '중에서', '몇', '두 권을', '두 권', '네,', '아니요,', '두 가지', '세 가지', '또는,'
     ]
     return any(keyword in response for keyword in negative_keywords)
 

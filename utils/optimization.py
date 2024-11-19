@@ -284,17 +284,17 @@ class Optimization:
             purchase_links = self.generate_purchase_links(title, book_info.get('isbn', ''))
 
             book_details = (
-                f"책 제목: '{title}' \n"
-                f"작가: {author} \n"
-                f"출판사: {publisher} \n"
-                f"추천 이유: {summary} \n"
-                f"구매 링크:\n {purchase_links} "
+                f"책 제목: '{title}' <br>"
+                f"작가: {author} <br>"
+                f"출판사: {publisher} <br>"
+                f"추천 이유: {summary} <br>"
+                f"구매 링크:<br> {purchase_links} "
             )
             book_details_list.append(book_details)
 
         # 최종 응답 생성
-        book_details_text = '\n\n'.join(book_details_list)
-        follow_up = "\n즐거운 독서 되세요!"
+        book_details_text = '<br><br>'.join(book_details_list)
+        follow_up = "<br>즐거운 독서 되세요!"
         final_response = f"{book_details_text}{follow_up}"
         logging.debug(f"Final response constructed: {final_response}")
         return final_response
@@ -445,11 +445,11 @@ class Optimization:
         encoded_title = requests.utils.quote(title)
 
         # 구매 링크 생성 (마크다운 형식으로 변경)
-        yes24_link = f"[예스24](https://www.yes24.com/Product/Search?query={encoded_title})"
-        aladin_link = f"[알라딘](https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=All&SearchWord={encoded_title})"
-        kyobo_link = f"[교보문고](https://search.kyobobook.co.kr/search?keyword={encoded_title})"
+        yes24_link = f"<a href='https://www.yes24.com/Product/Search?query={encoded_title}' target='_blank'>예스24</a>"
+        aladin_link = f"<a href='https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=All&SearchWord={encoded_title}' target='_blank'>알라딘</a>"
+        kyobo_link = f"<a href='https://search.kyobobook.co.kr/search?keyword={encoded_title}' target='_blank'>교보문고</a>"
 
-        purchase_links = f"- {yes24_link}\n- {aladin_link}\n- {kyobo_link}"
+        purchase_links = f"- {yes24_link}<br>- {aladin_link}<br>- {kyobo_link}"
 
         return purchase_links
 
