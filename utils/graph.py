@@ -63,16 +63,16 @@ def graph_main(state: State) -> Dict:
     workflow = StateGraph(GraphState)
     workflow.add_node("chatbot", chatbot)
     workflow.add_node("judgement", judgement_node)
-    workflow.add_node("optimize", optimize_node)
+    workflow.add_node("optimization", optimize_node)
     # 그래프 연결 설정
     workflow.add_edge(START, "chatbot")
     workflow.add_edge("chatbot", "judgement")
     workflow.add_conditional_edges(
         "judgement",
         decide_next_node, 
-        {"optimize": "optimize", "end": END},
+        {"optimization": "optimization", "end": END},
     )
-    workflow.add_edge("optimize", END)
+    workflow.add_edge("optimization", END)
     # 그래프 컴파일 및 실행
     lg_app = workflow.compile()
     ans = lg_app.invoke(state)
